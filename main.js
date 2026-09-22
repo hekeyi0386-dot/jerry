@@ -70,20 +70,19 @@ let lastMX = 0, lastMY = 0;
 window.addEventListener('mousemove', e => {
   const dx = e.clientX - lastMX;
   const dy = e.clientY - lastMY;
-  if (mouse.x === null) {
-    ringParticles.forEach(p => { p.x = e.clientX; p.y = e.clientY; p.vx = 0; p.vy = 0; });
-  } else {
-    mouse.speed = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
-  }
+  mouse.speed = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
   lastMX = mouse.x = e.clientX;
   lastMY = mouse.y = e.clientY;
+  const count = Math.max(2, Math.floor(mouse.speed * 0.8));
+  emitDust(mouse.x, mouse.y, count);
 });
 window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; mouse.speed = 0; });
 window.addEventListener('touchmove', e => {
-  const t = e.touches[0];
-  mouse.speed = Math.min(Math.hypot(t.clientX - lastMX, t.clientY - lastMY), 40);
-  lastMX = mouse.x = t.clientX;
-  lastMY = mouse.y = t.clientY;
+  const touch = e.touches[0];
+  mouse.speed = Math.min(Math.hypot(touch.clientX - lastMX, touch.clientY - lastMY), 40);
+  lastMX = mouse.x = touch.clientX;
+  lastMY = mouse.y = touch.clientY;
+  emitDust(mouse.x, mouse.y, Math.max(2, Math.floor(mouse.speed * 0.8)));
 }, { passive: true });
 window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
 
@@ -129,61 +128,60 @@ class AmbientBlob {
   }
 }
 
-// ── RING PARTICLES ───────────────────────────────────────
-// Key mechanic:
-//   still  → each particle springs to its ring position around cursor
-//   moving → ring radius collapses (target = near cursor),
-//             different spring speeds create the trailing-behind-cursor effect
-//   The trail is always in the direction OPPOSITE to movement,
-//   because slower particles haven't caught up yet.
+// ── DUST TRAIL PARTICLES ─────────────────────────────────
+// Emitted at cursor when mouse moves; drift with slight gravity and fade.
 
-const PARTICLE_COUNT = 180;  // denser
-const RING_R_BASE    = 34;
+const MAX_DUST = 1200;
+const dustPool = [];
 
-class RingParticle {
-  constructor(i, total) {
-    this.angle  = (i / total) * Math.PI * 2;
-    this.ringR  = RING_R_BASE * (0.65 + Math.random() * 0.6);
-    this.x  = -400;
-    this.y  = -400;
-    this.vx = 0;
-    this.vy = 0;
-    this.k    = 0.028 + Math.random() * 0.032;
-    this.damp = 0.88  + Math.random() * 0.08;
-    this.dotR = 0.35  + Math.random() * 0.50;
-    this.a    = 0.20  + Math.random() * 0.20;
-    const g   = 155 + Math.floor(Math.random() * 50);
-    const b   = 200 + Math.floor(Math.random() * 40);
-    this.fill = `rgba(14,${g},${b},${this.a.toFixed(2)})`;
+class DustParticle {
+  reset(x, y, speed) {
+    const spread = Math.min(speed * 0.6, 8);
+    const angle  = Math.random() * Math.PI * 2;
+    this.x    = x + (Math.random() - 0.5) * 4;
+    this.y    = y + (Math.random() - 0.5) * 4;
+    this.vx   = Math.cos(angle) * spread * (0.1 + Math.random() * 0.4);
+    this.vy   = Math.sin(angle) * spread * (0.1 + Math.random() * 0.4) - Math.random() * 0.6;
+    this.r    = 0.4 + Math.random() * 1.1;
+    this.life = 1.0;
+    this.decay = 0.006 + Math.random() * 0.010;
+    this.alive = true;
+    return this;
   }
-
-  update(mx, my, collapse) {
-    // collapse: 0 = full ring (still), 1 = all converge to cursor (moving fast)
-    const r  = this.ringR * (1 - collapse);
-    const tx = mx + Math.cos(this.angle) * r;
-    const ty = my + Math.sin(this.angle) * r;
-
-    this.vx = this.vx * this.damp + (tx - this.x) * this.k;
-    this.vy = this.vy * this.damp + (ty - this.y) * this.k;
-    this.x += this.vx;
-    this.y += this.vy;
+  update() {
+    this.vx *= 0.97;
+    this.vy  = this.vy * 0.97 + 0.04;
+    this.x  += this.vx;
+    this.y  += this.vy;
+    this.life -= this.decay;
+    if (this.life <= 0) this.alive = false;
   }
-
   draw() {
+    const a = this.life * 0.55;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.dotR, 0, Math.PI * 2);
-    ctx.fillStyle = this.fill;
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
     ctx.fill();
+  }
+}
+
+function emitDust(x, y, count) {
+  const speed = mouse.speed;
+  for (let i = 0; i < count; i++) {
+    const dead = dustPool.find(p => !p.alive);
+    if (dead) {
+      dead.reset(x, y, speed);
+    } else if (dustPool.length < MAX_DUST) {
+      dustPool.push(new DustParticle().reset(x, y, speed));
+    }
   }
 }
 
 // ── Init ─────────────────────────────────────────────────
 let gradientBlobs = [];
-let ringParticles = [];
 
 function init() {
   gradientBlobs = Array.from({ length: 10 }, (_, i) => new GradientBlob(i));
-  ringParticles = Array.from({ length: PARTICLE_COUNT }, (_, i) => new RingParticle(i, PARTICLE_COUNT));
 }
 
 // ── Animate ───────────────────────────────────────────────
@@ -193,23 +191,13 @@ function animate() {
   ctx.clearRect(0, 0, W, H);
   t += 16;
 
-  // decay speed each frame so ring re-forms after mouse stops
-  mouse.speed *= 0.82;
-  const collapse = Math.min(mouse.speed / 18, 1);
-
-  // 1. white base so blobs blend cleanly
   ctx.fillStyle = 'rgba(240,248,255,1)';
   ctx.fillRect(0, 0, W, H);
 
-  // 2. flowing gradient blobs
   gradientBlobs.forEach(b => { b.update(t); b.draw(); });
 
-  // 2. ring particles
-  if (mouse.x !== null) {
-    ringParticles.forEach(p => {
-      p.update(mouse.x, mouse.y, collapse);
-      p.draw();
-    });
+  for (let i = 0; i < dustPool.length; i++) {
+    if (dustPool[i].alive) { dustPool[i].update(); dustPool[i].draw(); }
   }
 
   requestAnimationFrame(animate);

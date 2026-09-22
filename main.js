@@ -29,49 +29,45 @@ window.addEventListener('touchmove', e => {
 }, { passive: true });
 window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
 
-// ── AMBIENT blobs: dynamic drifting background ────────────
+// ── AMBIENT blobs: visible dynamic background ─────────────
 class AmbientBlob {
   constructor() {
-    this.baseX    = W * (0.05 + Math.random() * 0.90);
-    this.baseY    = H * (0.05 + Math.random() * 0.90);
-    this.x        = this.baseX;
-    this.y        = this.baseY;
-    this.baseR    = 120 + Math.random() * 160;
-    this.r        = this.baseR;
-    this.baseAlpha = 0.38 + Math.random() * 0.28;
-    this.alpha    = this.baseAlpha;
-    this.hue      = 190 + Math.random() * 30;
-    this.phase    = Math.random() * Math.PI * 2;
-    this.pPhase   = Math.random() * Math.PI * 2; // pulse phase
-    this.freq     = 0.00028 + Math.random() * 0.00035;
-    this.pFreq    = 0.0006  + Math.random() * 0.0008;  // pulse freq (faster)
-    this.drift    = 50 + Math.random() * 70;
-    this.hueShift = (Math.random() - 0.5) * 0.012;     // slow hue drift
+    this.baseX     = W * (0.05 + Math.random() * 0.90);
+    this.baseY     = H * (0.05 + Math.random() * 0.90);
+    this.x         = this.baseX;
+    this.y         = this.baseY;
+    this.baseR     = 160 + Math.random() * 200;
+    this.r         = this.baseR;
+    this.baseAlpha = 0.62 + Math.random() * 0.25;  // much stronger
+    this.alpha     = this.baseAlpha;
+    this.hue       = 188 + Math.random() * 35;
+    this.sat       = 80 + Math.random() * 15;
+    this.phase     = Math.random() * Math.PI * 2;
+    this.pPhase    = Math.random() * Math.PI * 2;
+    this.freq      = 0.0004 + Math.random() * 0.0005;   // faster drift
+    this.pFreq     = 0.001  + Math.random() * 0.0012;   // faster pulse
+    this.drift     = 80 + Math.random() * 100;           // wider movement
+    this.hueShift  = (Math.random() - 0.5) * 0.02;
   }
   update(t) {
-    // position drift
-    this.x = this.baseX + Math.cos(t * this.freq + this.phase) * this.drift;
-    this.y = this.baseY + Math.sin(t * this.freq * 1.4 + this.phase + 1) * this.drift * 0.65;
-    // size pulse
-    const pulse = Math.sin(t * this.pFreq + this.pPhase);
-    this.r      = this.baseR * (1 + pulse * 0.22);
-    // alpha breathe
-    this.alpha  = this.baseAlpha * (0.72 + (pulse + 1) * 0.22);
-    // slow hue drift
-    this.hue   += this.hueShift;
+    this.x    = this.baseX + Math.cos(t * this.freq + this.phase) * this.drift;
+    this.y    = this.baseY + Math.sin(t * this.freq * 1.5 + this.phase + 1) * this.drift * 0.7;
+    const p   = Math.sin(t * this.pFreq + this.pPhase);
+    this.r    = this.baseR * (1 + p * 0.32);             // bigger pulse ±32%
+    this.alpha = this.baseAlpha * (0.65 + (p + 1) * 0.25);
+    this.hue  += this.hueShift;
   }
   draw() {
-    ctx.save();
-    ctx.filter = 'blur(38px)';
+    // inner solid core (no blur filter — stays visible on light bg)
     const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
-    g.addColorStop(0,    `hsla(${this.hue},92%,72%,${this.alpha})`);
-    g.addColorStop(0.45, `hsla(${this.hue},86%,64%,${this.alpha * 0.45})`);
-    g.addColorStop(1,    `hsla(${this.hue},80%,58%,0)`);
+    g.addColorStop(0,    `hsla(${this.hue},${this.sat}%,68%,${this.alpha})`);
+    g.addColorStop(0.35, `hsla(${this.hue},${this.sat}%,65%,${this.alpha * 0.7})`);
+    g.addColorStop(0.7,  `hsla(${this.hue},${this.sat}%,60%,${this.alpha * 0.2})`);
+    g.addColorStop(1,    `hsla(${this.hue},${this.sat}%,58%,0)`);
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
 }
 
@@ -128,7 +124,7 @@ let ambientBlobs  = [];
 let ringParticles = [];
 
 function init() {
-  ambientBlobs  = Array.from({ length: 8 }, () => new AmbientBlob());
+  ambientBlobs  = Array.from({ length: 10 }, () => new AmbientBlob());
   ringParticles = Array.from({ length: PARTICLE_COUNT }, (_, i) => new RingParticle(i, PARTICLE_COUNT));
 }
 

@@ -70,8 +70,11 @@ let lastMX = 0, lastMY = 0;
 window.addEventListener('mousemove', e => {
   const dx = e.clientX - lastMX;
   const dy = e.clientY - lastMY;
-  if (mouse.x !== null)
+  if (mouse.x === null) {
+    ringParticles.forEach(p => { p.x = e.clientX; p.y = e.clientY; p.vx = 0; p.vy = 0; });
+  } else {
     mouse.speed = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
+  }
   lastMX = mouse.x = e.clientX;
   lastMY = mouse.y = e.clientY;
 });
@@ -145,10 +148,10 @@ class RingParticle {
     this.y  = -400;
     this.vx = 0;
     this.vy = 0;
-    this.k    = 0.010 + Math.random() * 0.014;
-    this.damp = 0.93  + Math.random() * 0.04;
-    this.dotR = 0.4   + Math.random() * 0.55;
-    this.a    = 0.18  + Math.random() * 0.18;
+    this.k    = 0.028 + Math.random() * 0.032;
+    this.damp = 0.88  + Math.random() * 0.08;
+    this.dotR = 0.35  + Math.random() * 0.50;
+    this.a    = 0.20  + Math.random() * 0.20;
     const g   = 155 + Math.floor(Math.random() * 50);
     const b   = 200 + Math.floor(Math.random() * 40);
     this.fill = `rgba(14,${g},${b},${this.a.toFixed(2)})`;

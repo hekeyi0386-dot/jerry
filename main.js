@@ -1,133 +1,175 @@
-// ── Particle System ──────────────────────────────────────
+// ── Blob Particle System ─────────────────────────────────
 const canvas = document.getElementById('particle-canvas');
-const ctx = canvas.getContext('2d');
+const ctx    = canvas.getContext('2d');
 
-let W, H, particles;
-const PARTICLE_COUNT = 60;
-const mouse = { x: -9999, y: -9999 };
+let W, H;
+const mouse = { x: -999, y: -999, vx: 0, vy: 0, speed: 0 };
+let lastMX = 0, lastMY = 0;
 
 function resize() {
-  W = canvas.width = window.innerWidth;
+  W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
 }
 
-class Particle {
-  constructor() { this.reset(true); }
-
-  reset(initial) {
-    this.x  = Math.random() * W;
-    this.y  = initial ? Math.random() * H : H + 20;
-    this.r  = Math.random() * 3 + 1.2;
-    this.vx = (Math.random() - 0.5) * 0.3;
-    this.vy = -(Math.random() * 0.4 + 0.1);
-    this.alpha = Math.random() * 0.5 + 0.15;
-    this.targetAlpha = this.alpha;
+// ── Blob class ───────────────────────────────────────────
+class Blob {
+  constructor(i, total) {
+    const angle = (i / total) * Math.PI * 2 + Math.random() * 0.5;
+    this.scatterAngle = angle;
+    this.scatterRadius = 140 + Math.random() * 120;
+    this.x  = W / 2 + Math.cos(angle) * this.scatterRadius;
+    this.y  = H / 2 + Math.sin(angle) * this.scatterRadius;
+    this.vx = 0;
+    this.vy = 0;
+    this.r  = 90 + Math.random() * 70;      // visual radius of glow
+    this.stiffness = 0.028 + Math.random() * 0.022;
+    this.damping   = 0.86 + Math.random() * 0.06;
+    this.alpha     = 0.55 + Math.random() * 0.3;
+    // subtle hue shift (sky-blue range)
+    this.hue = 195 + Math.random() * 20;
   }
 
-  update() {
-    // gentle mouse attraction
-    const dx = mouse.x - this.x;
-    const dy = mouse.y - this.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 180) {
-      const force = (180 - dist) / 180 * 0.018;
-      this.vx += dx / dist * force;
-      this.vy += dy / dist * force;
-    }
+  update(scatter) {
+    // target when clustered: near mouse
+    const cx = mouse.x + (Math.random() - 0.5) * 8;
+    const cy = mouse.y + (Math.random() - 0.5) * 8;
 
-    // dampen
-    this.vx *= 0.97;
-    this.vy *= 0.97;
+    // target when scattered: mouse + outward direction
+    const boom = 1 + scatter * 2.2;
+    const sx = mouse.x + Math.cos(this.scatterAngle) * this.scatterRadius * boom;
+    const sy = mouse.y + Math.sin(this.scatterAngle) * this.scatterRadius * boom;
 
-    this.x += this.vx;
-    this.y += this.vy;
+    const tx = cx + (sx - cx) * scatter;
+    const ty = cy + (sy - cy) * scatter;
 
-    // recycle off-screen
-    if (this.y < -20 || this.x < -40 || this.x > W + 40) this.reset(false);
+    this.vx += (tx - this.x) * this.stiffness;
+    this.vy += (ty - this.y) * this.stiffness;
+    this.vx *= this.damping;
+    this.vy *= this.damping;
+    this.x  += this.vx;
+    this.y  += this.vy;
   }
 
   draw() {
     ctx.save();
-    ctx.globalAlpha = this.alpha;
-    const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r * 2.5);
-    grad.addColorStop(0, 'rgba(125,211,252,0.9)');
-    grad.addColorStop(0.5, 'rgba(56,189,248,0.4)');
-    grad.addColorStop(1, 'rgba(56,189,248,0)');
-    ctx.fillStyle = grad;
+    ctx.filter = 'blur(28px)';
+    const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+    g.addColorStop(0,   `hsla(${this.hue},95%,78%,${this.alpha})`);
+    g.addColorStop(0.5, `hsla(${this.hue},90%,60%,${this.alpha * 0.55})`);
+    g.addColorStop(1,   `hsla(${this.hue},85%,55%,0)`);
+    ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r * 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // solid core
-    ctx.globalAlpha = this.alpha * 0.9;
-    ctx.fillStyle = 'rgba(186,230,255,0.95)';
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r * 0.5, 0, Math.PI * 2);
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 }
 
-function initParticles() {
-  particles = Array.from({ length: PARTICLE_COUNT }, () => new Particle());
+// ── White center glow ─────────────────────────────────────
+function drawCenter(scatter) {
+  const intensity = Math.pow(1 - scatter, 2); // sharp falloff
+  if (intensity < 0.03 || mouse.x < 0) return;
+
+  ctx.save();
+  // outer soft halo
+  ctx.filter = 'blur(16px)';
+  const g2 = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 70);
+  g2.addColorStop(0,   `rgba(220,245,255,${intensity * 0.9})`);
+  g2.addColorStop(0.5, `rgba(147,221,253,${intensity * 0.45})`);
+  g2.addColorStop(1,   'rgba(56,189,248,0)');
+  ctx.fillStyle = g2;
+  ctx.beginPath();
+  ctx.arc(mouse.x, mouse.y, 70, 0, Math.PI * 2);
+  ctx.fill();
+
+  // crisp white core circle
+  ctx.filter = 'none';
+  ctx.beginPath();
+  ctx.arc(mouse.x, mouse.y, 10 * intensity, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(255,255,255,${intensity * 0.95})`;
+  ctx.fill();
+  ctx.restore();
 }
 
-function animate() {
+// ── Init ─────────────────────────────────────────────────
+const BLOB_COUNT = 8;
+let blobs = [];
+
+function initBlobs() {
+  blobs = Array.from({ length: BLOB_COUNT }, (_, i) => new Blob(i, BLOB_COUNT));
+}
+
+// ── Animate ───────────────────────────────────────────────
+let prevTime = 0;
+
+function animate(ts) {
+  const dt = Math.min((ts - prevTime) / 16.67, 3);
+  prevTime = ts;
+
   ctx.clearRect(0, 0, W, H);
 
-  // draw faint connection lines near mouse
-  particles.forEach(p => {
-    const dx = mouse.x - p.x;
-    const dy = mouse.y - p.y;
-    const d = Math.sqrt(dx * dx + dy * dy);
-    if (d < 130) {
-      ctx.save();
-      ctx.globalAlpha = (1 - d / 130) * 0.12;
-      ctx.strokeStyle = '#7dd3fc';
-      ctx.lineWidth = 0.6;
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(mouse.x, mouse.y);
-      ctx.stroke();
-      ctx.restore();
-    }
-  });
+  // mouse speed → scatter factor [0,1]
+  mouse.speed *= 0.88;
+  const scatter = Math.min(mouse.speed / 18, 1);
 
-  particles.forEach(p => { p.update(); p.draw(); });
+  drawCenter(scatter);
+  blobs.forEach(b => { b.update(scatter); b.draw(); });
+
   requestAnimationFrame(animate);
 }
 
-window.addEventListener('resize', () => { resize(); initParticles(); });
-window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+// ── Events ────────────────────────────────────────────────
+window.addEventListener('mousemove', e => {
+  mouse.vx = e.clientX - lastMX;
+  mouse.vy = e.clientY - lastMY;
+  mouse.speed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
+  lastMX = mouse.x = e.clientX;
+  lastMY = mouse.y = e.clientY;
+});
 
+window.addEventListener('mouseleave', () => {
+  mouse.x = W / 2;
+  mouse.y = H / 2;
+  mouse.speed = 0;
+});
+
+// touch support
+window.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  mouse.speed = Math.hypot(t.clientX - lastMX, t.clientY - lastMY);
+  lastMX = mouse.x = t.clientX;
+  lastMY = mouse.y = t.clientY;
+}, { passive: true });
+
+window.addEventListener('resize', () => { resize(); initBlobs(); });
+
+// ── Boot ──────────────────────────────────────────────────
 resize();
-initParticles();
-animate();
+mouse.x = W / 2;
+mouse.y = H / 2;
+initBlobs();
+requestAnimationFrame(animate);
 
-// ── Scroll Reveal ────────────────────────────────────────
-const observer = new IntersectionObserver(
+// ── Scroll Reveal ─────────────────────────────────────────
+const revealObserver = new IntersectionObserver(
   entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
   { threshold: 0.08, rootMargin: '0px 0px -30px 0px' }
 );
 
-document.querySelectorAll(
-  '.timeline-card, .project-card, .edu-item, .about-text, .skills-box'
-).forEach((el, i) => {
-  el.classList.add('reveal');
-  el.style.transitionDelay = `${(i % 3) * 80}ms`;
-  observer.observe(el);
-});
+document.querySelectorAll('.timeline-card, .project-card, .edu-item, .about-text, .skills-box')
+  .forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.transitionDelay = `${(i % 3) * 80}ms`;
+    revealObserver.observe(el);
+  });
 
-// ── Navbar active link ───────────────────────────────────
-const sections  = document.querySelectorAll('section[id]');
-const navLinks  = document.querySelectorAll('.nav-links a');
+// ── Navbar active ─────────────────────────────────────────
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
 
 window.addEventListener('scroll', () => {
   let current = '';
-  sections.forEach(s => {
-    if (window.scrollY >= s.offsetTop - 140) current = s.id;
-  });
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 140) current = s.id; });
   navLinks.forEach(a => {
     a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--accent)' : '';
   });

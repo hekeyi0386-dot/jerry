@@ -12,16 +12,16 @@ function resize() {
 // Multiple large blue blobs flowing in sine paths,
 // blending together into a living mesh gradient.
 const BG_COLORS = [
-  { h: 200, s: 95, l: 58 },  // vivid sky blue
-  { h: 190, s: 90, l: 55 },  // vivid cyan-blue
-  { h: 210, s: 88, l: 60 },  // vivid cornflower
-  { h: 185, s: 92, l: 54 },  // vivid teal-blue
-  { h: 218, s: 82, l: 62 },  // vivid periwinkle
-  { h: 197, s: 94, l: 57 },  // vivid medium blue
-  { h: 204, s: 85, l: 59 },  // vivid steel blue
-  { h: 222, s: 78, l: 63 },  // vivid lavender-blue
-  { h: 193, s: 96, l: 56 },  // vivid aqua blue
-  { h: 213, s: 84, l: 61 },  // vivid slate blue
+  { h: 200, s: 85, l: 76 },
+  { h: 190, s: 80, l: 80 },
+  { h: 210, s: 78, l: 78 },
+  { h: 185, s: 82, l: 74 },
+  { h: 218, s: 72, l: 82 },
+  { h: 197, s: 84, l: 75 },
+  { h: 204, s: 76, l: 77 },
+  { h: 222, s: 68, l: 84 },
+  { h: 193, s: 86, l: 73 },
+  { h: 213, s: 74, l: 79 },
 ];
 
 class GradientBlob {
@@ -36,7 +36,7 @@ class GradientBlob {
     this.rx        = W  * (0.02 + Math.random() * 0.03);
     this.ry        = H  * (0.02 + Math.random() * 0.03);
     this.r         = Math.min(W, H) * (0.30 + Math.random() * 0.32);
-    this.alpha     = 0.72 + Math.random() * 0.20;
+    this.alpha     = 0.48 + Math.random() * 0.18;
     this.phase     = Math.random() * Math.PI * 2;
     this.phaseY    = Math.random() * Math.PI * 2;
     // extremely slow drift

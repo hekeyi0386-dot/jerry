@@ -12,16 +12,16 @@ function resize() {
 // Multiple large blue blobs flowing in sine paths,
 // blending together into a living mesh gradient.
 const BG_COLORS = [
-  { h: 200, s: 88, l: 74 },  // sky blue
-  { h: 195, s: 82, l: 80 },  // light cyan-blue
-  { h: 210, s: 75, l: 76 },  // cornflower
-  { h: 188, s: 90, l: 72 },  // teal-blue
-  { h: 215, s: 70, l: 78 },  // periwinkle
-  { h: 198, s: 85, l: 70 },  // medium sky
-  { h: 205, s: 78, l: 75 },  // steel blue
-  { h: 220, s: 65, l: 82 },  // pale lavender-blue
-  { h: 192, s: 92, l: 76 },  // aqua blue
-  { h: 212, s: 72, l: 73 },  // slate blue
+  { h: 200, s: 95, l: 58 },  // vivid sky blue
+  { h: 190, s: 90, l: 55 },  // vivid cyan-blue
+  { h: 210, s: 88, l: 60 },  // vivid cornflower
+  { h: 185, s: 92, l: 54 },  // vivid teal-blue
+  { h: 218, s: 82, l: 62 },  // vivid periwinkle
+  { h: 197, s: 94, l: 57 },  // vivid medium blue
+  { h: 204, s: 85, l: 59 },  // vivid steel blue
+  { h: 222, s: 78, l: 63 },  // vivid lavender-blue
+  { h: 193, s: 96, l: 56 },  // vivid aqua blue
+  { h: 213, s: 84, l: 61 },  // vivid slate blue
 ];
 
 class GradientBlob {
@@ -30,33 +30,32 @@ class GradientBlob {
     this.h         = c.h;
     this.s         = c.s;
     this.l         = c.l;
-    // center of elliptical orbit
     this.cx        = W * (0.1 + Math.random() * 0.8);
     this.cy        = H * (0.1 + Math.random() * 0.8);
-    // orbit size
-    this.rx        = W  * (0.25 + Math.random() * 0.35);
-    this.ry        = H  * (0.20 + Math.random() * 0.30);
-    this.r         = Math.min(W, H) * (0.28 + Math.random() * 0.30);
-    this.alpha     = 0.55 + Math.random() * 0.28;
+    // very tiny orbit so movement is barely perceptible
+    this.rx        = W  * (0.02 + Math.random() * 0.03);
+    this.ry        = H  * (0.02 + Math.random() * 0.03);
+    this.r         = Math.min(W, H) * (0.30 + Math.random() * 0.32);
+    this.alpha     = 0.72 + Math.random() * 0.20;
     this.phase     = Math.random() * Math.PI * 2;
     this.phaseY    = Math.random() * Math.PI * 2;
-    this.speed     = 0.000004 + Math.random() * 0.000004;
-    this.hDrift    = (Math.random() - 0.5) * 0.015;
+    // extremely slow drift
+    this.speed     = 0.0000006 + Math.random() * 0.0000006;
+    this.hDrift    = (Math.random() - 0.5) * 0.008;
   }
   update(t) {
     this.x  = this.cx + Math.cos(t * this.speed + this.phase)  * this.rx;
-    this.y  = this.cy + Math.sin(t * this.speed * 0.8 + this.phaseY) * this.ry;
+    this.y  = this.cy + Math.sin(t * this.speed * 0.7 + this.phaseY) * this.ry;
     this.h += this.hDrift;
-    // keep hue in blue range 185–225
     if (this.h > 225) this.hDrift = -Math.abs(this.hDrift);
-    if (this.h < 185) this.hDrift =  Math.abs(this.hDrift);
+    if (this.h < 183) this.hDrift =  Math.abs(this.hDrift);
   }
   draw() {
     const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
-    g.addColorStop(0,   `hsla(${this.h},${this.s}%,${this.l}%,${this.alpha})`);
-    g.addColorStop(0.4, `hsla(${this.h},${this.s}%,${this.l+4}%,${this.alpha * 0.6})`);
-    g.addColorStop(0.75,`hsla(${this.h},${this.s}%,${this.l+6}%,${this.alpha * 0.15})`);
-    g.addColorStop(1,   `hsla(${this.h},${this.s}%,${this.l+8}%,0)`);
+    g.addColorStop(0,    `hsla(${this.h},${this.s}%,${this.l}%,${this.alpha})`);
+    g.addColorStop(0.45, `hsla(${this.h},${this.s}%,${this.l+5}%,${this.alpha * 0.55})`);
+    g.addColorStop(0.78, `hsla(${this.h},${this.s}%,${this.l+10}%,${this.alpha * 0.12})`);
+    g.addColorStop(1,    `hsla(${this.h},${this.s}%,${this.l+14}%,0)`);
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);

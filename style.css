@@ -137,6 +137,37 @@ section { padding: 6rem 0; }
   max-width: 620px;
 }
 
+/* ── Hero Avatar ────────────────────────────────────────── */
+.hero-avatar {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 1.5rem;
+}
+
+.hero-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.15s ease;
+}
+
+#face-default  { opacity: 1; }
+#face-smile    { opacity: 0; }
+
+/* smile active state */
+.hero-avatar.smiling #face-default { opacity: 0; }
+.hero-avatar.smiling #face-smile   { opacity: 1; }
+
+/* nav logo hint */
+#nav-logo-trigger {
+  cursor: pointer;
+  user-select: none;
+}
+#nav-logo-trigger:hover { opacity: 0.75; }
+
 .hero-greeting {
   font-size: 0.78rem;
   color: var(--text3);

@@ -231,6 +231,20 @@ document.querySelectorAll('.timeline-card,.project-card,.edu-item,.about-text,.s
     revealObs.observe(el);
   });
 
+// ── Avatar smile interaction ──────────────────────────────
+const avatar   = document.querySelector('.hero-avatar');
+const navLogo  = document.getElementById('nav-logo-trigger');
+let smileTimer = null;
+
+function triggerSmile() {
+  if (!avatar) return;
+  avatar.classList.add('smiling');
+  clearTimeout(smileTimer);
+  smileTimer = setTimeout(() => avatar.classList.remove('smiling'), 1000);
+}
+
+if (navLogo) navLogo.addEventListener('click', triggerSmile);
+
 // ── Navbar active ─────────────────────────────────────────
 const sections = document.querySelectorAll('section[id]');
 const navLinks = document.querySelectorAll('.nav-links a');

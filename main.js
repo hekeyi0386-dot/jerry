@@ -145,10 +145,10 @@ class RingParticle {
     this.y  = -400;
     this.vx = 0;
     this.vy = 0;
-    this.k    = 0.008 + Math.random() * 0.012;
-    this.damp = 0.94  + Math.random() * 0.04;
-    this.dotR = 0.2   + Math.random() * 0.35;
-    this.a    = 0.06  + Math.random() * 0.10;
+    this.k    = 0.010 + Math.random() * 0.014;
+    this.damp = 0.93  + Math.random() * 0.04;
+    this.dotR = 0.4   + Math.random() * 0.55;
+    this.a    = 0.18  + Math.random() * 0.18;
     const g   = 155 + Math.floor(Math.random() * 50);
     const b   = 200 + Math.floor(Math.random() * 40);
     this.fill = `rgba(14,${g},${b},${this.a.toFixed(2)})`;

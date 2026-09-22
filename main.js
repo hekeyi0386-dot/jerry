@@ -8,6 +8,62 @@ function resize() {
   H = canvas.height = window.innerHeight;
 }
 
+// ── Fluid Gradient Background ────────────────────────────
+// Multiple large blue blobs flowing in sine paths,
+// blending together into a living mesh gradient.
+const BG_COLORS = [
+  { h: 200, s: 88, l: 74 },  // sky blue
+  { h: 195, s: 82, l: 80 },  // light cyan-blue
+  { h: 210, s: 75, l: 76 },  // cornflower
+  { h: 188, s: 90, l: 72 },  // teal-blue
+  { h: 215, s: 70, l: 78 },  // periwinkle
+  { h: 198, s: 85, l: 70 },  // medium sky
+  { h: 205, s: 78, l: 75 },  // steel blue
+  { h: 220, s: 65, l: 82 },  // pale lavender-blue
+  { h: 192, s: 92, l: 76 },  // aqua blue
+  { h: 212, s: 72, l: 73 },  // slate blue
+];
+
+class GradientBlob {
+  constructor(i) {
+    const c        = BG_COLORS[i % BG_COLORS.length];
+    this.h         = c.h;
+    this.s         = c.s;
+    this.l         = c.l;
+    // center of elliptical orbit
+    this.cx        = W * (0.1 + Math.random() * 0.8);
+    this.cy        = H * (0.1 + Math.random() * 0.8);
+    // orbit size
+    this.rx        = W  * (0.25 + Math.random() * 0.35);
+    this.ry        = H  * (0.20 + Math.random() * 0.30);
+    this.r         = Math.min(W, H) * (0.28 + Math.random() * 0.30);
+    this.alpha     = 0.55 + Math.random() * 0.28;
+    this.phase     = Math.random() * Math.PI * 2;
+    this.phaseY    = Math.random() * Math.PI * 2;
+    this.speed     = 0.00035 + Math.random() * 0.00045;
+    this.hDrift    = (Math.random() - 0.5) * 0.015;
+  }
+  update(t) {
+    this.x  = this.cx + Math.cos(t * this.speed + this.phase)  * this.rx;
+    this.y  = this.cy + Math.sin(t * this.speed * 0.8 + this.phaseY) * this.ry;
+    this.h += this.hDrift;
+    // keep hue in blue range 185–225
+    if (this.h > 225) this.hDrift = -Math.abs(this.hDrift);
+    if (this.h < 185) this.hDrift =  Math.abs(this.hDrift);
+  }
+  draw() {
+    const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+    g.addColorStop(0,   `hsla(${this.h},${this.s}%,${this.l}%,${this.alpha})`);
+    g.addColorStop(0.4, `hsla(${this.h},${this.s}%,${this.l+4}%,${this.alpha * 0.6})`);
+    g.addColorStop(0.75,`hsla(${this.h},${this.s}%,${this.l+6}%,${this.alpha * 0.15})`);
+    g.addColorStop(1,   `hsla(${this.h},${this.s}%,${this.l+8}%,0)`);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 // ── Mouse tracking ───────────────────────────────────────
 const mouse = { x: null, y: null, speed: 0 };
 let lastMX = 0, lastMY = 0;
@@ -29,7 +85,7 @@ window.addEventListener('touchmove', e => {
 }, { passive: true });
 window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
 
-// ── AMBIENT blobs: visible dynamic background ─────────────
+// ── AMBIENT blobs (removed — replaced by GradientBlob) ────
 class AmbientBlob {
   constructor() {
     this.baseX     = W * (0.05 + Math.random() * 0.90);
@@ -120,11 +176,11 @@ class RingParticle {
 }
 
 // ── Init ─────────────────────────────────────────────────
-let ambientBlobs  = [];
+let gradientBlobs = [];
 let ringParticles = [];
 
 function init() {
-  ambientBlobs  = Array.from({ length: 10 }, () => new AmbientBlob());
+  gradientBlobs = Array.from({ length: 10 }, (_, i) => new GradientBlob(i));
   ringParticles = Array.from({ length: PARTICLE_COUNT }, (_, i) => new RingParticle(i, PARTICLE_COUNT));
 }
 
@@ -139,8 +195,12 @@ function animate() {
   mouse.speed *= 0.82;
   const collapse = Math.min(mouse.speed / 18, 1);
 
-  // 1. ambient blobs
-  ambientBlobs.forEach(b => { b.update(t); b.draw(); });
+  // 1. white base so blobs blend cleanly
+  ctx.fillStyle = 'rgba(240,248,255,1)';
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. flowing gradient blobs
+  gradientBlobs.forEach(b => { b.update(t); b.draw(); });
 
   // 2. ring particles
   if (mouse.x !== null) {

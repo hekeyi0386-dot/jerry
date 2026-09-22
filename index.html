@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jiarui Feng — Quantitative Researcher</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo">JF</a>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#education">Education</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section id="hero">
+    <div class="hero-content">
+      <p class="hero-greeting">Hi, I'm</p>
+      <h1 class="hero-name">Jiarui <span class="accent">Feng</span></h1>
+      <p class="hero-title">Quantitative Researcher</p>
+      <p class="hero-sub">Financial Mathematics @ University of Chicago<br/>High-Frequency Factors · Market Making · Order Flow Modeling</p>
+      <div class="hero-cta">
+        <a href="#experience" class="btn btn-primary">View My Work</a>
+        <a href="#contact" class="btn btn-outline">Get In Touch</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span>scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="container">
+      <h2 class="section-title">About</h2>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>
+            I'm a quantitative researcher with a background in economics and financial mathematics,
+            currently pursuing my M.S. at the University of Chicago. My work sits at the intersection
+            of <strong>high-frequency trading</strong>, <strong>market microstructure</strong>, and
+            <strong>machine learning</strong>.
+          </p>
+          <p>
+            Across three internships in China's quantitative finance industry, I've built
+            HFT factor pipelines, developed order-flow models using Hawkes processes,
+            and collaborated with traders on real-time risk monitoring systems.
+          </p>
+          <p>
+            I'm particularly interested in <strong>limit order book dynamics</strong>,
+            <strong>regime-switching models</strong>, and the application of modern ML methods
+            to financial time series.
+          </p>
+        </div>
+        <div class="skills-box">
+          <h3>Technical Skills</h3>
+          <div class="skill-group">
+            <span class="skill-label">Languages</span>
+            <div class="skill-tags">
+              <span class="tag">Python</span>
+              <span class="tag">C++</span>
+              <span class="tag">R</span>
+              <span class="tag">SQL</span>
+              <span class="tag">Stata</span>
+            </div>
+          </div>
+          <div class="skill-group">
+            <span class="skill-label">Libraries</span>
+            <div class="skill-tags">
+              <span class="tag">NumPy</span>
+              <span class="tag">Pandas</span>
+              <span class="tag">Polars</span>
+              <span class="tag">PyTorch</span>
+              <span class="tag">scikit-learn</span>
+            </div>
+          </div>
+          <div class="skill-group">
+            <span class="skill-label">Domains</span>
+            <div class="skill-tags">
+              <span class="tag">HFT Factor Research</span>
+              <span class="tag">Market Making</span>
+              <span class="tag">Hawkes Process</span>
+              <span class="tag">HMM</span>
+              <span class="tag">LOB Modeling</span>
+            </div>
+          </div>
+          <div class="skill-group">
+            <span class="skill-label">Tools</span>
+            <div class="skill-tags">
+              <span class="tag">Git</span>
+              <span class="tag">Linux</span>
+              <span class="tag">MCP</span>
+              <span class="tag">AI Agents</span>
+            </div>
+          </div>
+          <div class="cert-line">
+            <span class="cert-icon">✦</span> Baruch C++ Certificate
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experience -->
+  <section id="experience">
+    <div class="container">
+      <h2 class="section-title">Experience</h2>
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="timeline-meta">
+            <span class="timeline-period">Mar 2026 – Jul 2026</span>
+            <span class="timeline-loc">Shenzhen, China</span>
+          </div>
+          <div class="timeline-card">
+            <div class="card-header">
+              <h3>Quantitative Research Intern</h3>
+              <span class="company">Newdaq Investment Co., Ltd</span>
+            </div>
+            <ul>
+              <li>Built a Python-based agentic HFT factor-research pipeline for cross-border ETFs using tick-level order and trade data with <code>numpy</code> and <code>polars</code>, automating literature synthesis, factor generation, evaluation, and registration — validating <strong>30+ high-frequency signals</strong>.</li>
+              <li>Developed an order-flow modeling framework using a <strong>regime-conditioned multivariate Hawkes process</strong> with HMM-inferred market states to forecast LOB event intensities; integrated forecasts into a market-making strategy, improving annualized return by approximately <strong>5%</strong> vs. baseline.</li>
+            </ul>
+            <div class="card-tags">
+              <span class="tag tag-sm">Hawkes Process</span>
+              <span class="tag tag-sm">HMM</span>
+              <span class="tag tag-sm">Market Making</span>
+              <span class="tag tag-sm">HFT</span>
+              <span class="tag tag-sm">Polars</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-meta">
+            <span class="timeline-period">Jul 2025 – Oct 2025</span>
+            <span class="timeline-loc">Beijing, China</span>
+          </div>
+          <div class="timeline-card">
+            <div class="card-header">
+              <h3>Quantitative Research Intern</h3>
+              <span class="company">Beijing Pingfan Private Equity Fund Management</span>
+            </div>
+            <ul>
+              <li>Developed ETF factor-research and market-making strategies for SSE/SZSE-listed ETFs tracking HK assets; validated <strong>20+ high-frequency predictive factors</strong> — IOPV deviations, trade-size imbalances, LOB features, and sector-index co-movements — achieving factor ICs of up to <strong>0.09</strong>.</li>
+              <li>Upgraded Python-based intraday risk-monitoring modules, refining ~40 real-time alerts for excessive positions, futures/options rollovers, non-basis trades, and abnormal order-rejection rates; contributed technical specifications and implementation documentation.</li>
+            </ul>
+            <div class="card-tags">
+              <span class="tag tag-sm">ETF</span>
+              <span class="tag tag-sm">Factor IC</span>
+              <span class="tag tag-sm">LOB Features</span>
+              <span class="tag tag-sm">Risk Monitoring</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-meta">
+            <span class="timeline-period">Feb 2025 – May 2025</span>
+            <span class="timeline-loc">Hangzhou, China</span>
+          </div>
+          <div class="timeline-card">
+            <div class="card-header">
+              <h3>Quantitative Research Intern</h3>
+              <span class="company">Hangzhou Jiahe Shansheng Private Equity Fund Management</span>
+            </div>
+            <ul>
+              <li>Conducted factor screening by analyzing XGBoost/LightGBM feature importance (split counts, information gain, SHAP) to dynamically select daily factors; applied SGMM in Stata — improving daily <strong>RankIC by 0.027</strong> and <strong>IC by 0.021</strong>.</li>
+              <li>Reviewed and synthesized 30 Huatai Securities AI research reports on multi-task learning, GNNs, and multi-horizon/frequency factor fusion, producing internal research briefs.</li>
+            </ul>
+            <div class="card-tags">
+              <span class="tag tag-sm">XGBoost</span>
+              <span class="tag tag-sm">LightGBM</span>
+              <span class="tag tag-sm">SHAP</span>
+              <span class="tag tag-sm">SGMM</span>
+              <span class="tag tag-sm">Factor Research</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects">
+    <div class="container">
+      <h2 class="section-title">Projects</h2>
+      <div class="projects-grid">
+
+        <div class="project-card">
+          <div class="project-top">
+            <span class="project-tag">NLP · Sentiment Analysis</span>
+            <span class="project-date">May – Aug 2025</span>
+          </div>
+          <h3>Advertisement Effect Measurement in Video</h3>
+          <p class="project-org">Fudan University (Course Project)</p>
+          <p>Scraped ~8 million real-time comments and subtitles from Bilibili using a Python data pipeline. Used Qwen-plus to identify and tag ad exposures, then built a <strong>sentiment time-series model</strong> with fine-tuned Chinese RoBERTa on subtitle tokens to measure advertisement effects.</p>
+          <div class="card-tags">
+            <span class="tag tag-sm">RoBERTa</span>
+            <span class="tag tag-sm">Qwen</span>
+            <span class="tag tag-sm">Web Scraping</span>
+            <span class="tag tag-sm">NLP</span>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="project-top">
+            <span class="project-tag">Derivatives Pricing · Stochastic Calculus</span>
+            <span class="project-date">Oct – Nov 2024</span>
+          </div>
+          <h3>Pricing TIPS under the HJM Framework</h3>
+          <p class="project-org">University of Pennsylvania (Course Paper)</p>
+          <p>Priced Treasury Inflation-Protected Securities (TIPS) under the <strong>Heath–Jarrow–Morton framework</strong> using martingale conditions under different discounting schemes, analyzing the interplay between real and nominal interest rate dynamics.</p>
+          <div class="card-tags">
+            <span class="tag tag-sm">HJM</span>
+            <span class="tag tag-sm">TIPS</span>
+            <span class="tag tag-sm">Stochastic Calculus</span>
+            <span class="tag tag-sm">Fixed Income</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Education -->
+  <section id="education">
+    <div class="container">
+      <h2 class="section-title">Education</h2>
+      <div class="edu-list">
+
+        <div class="edu-item">
+          <div class="edu-meta">
+            <span class="edu-period">Expected Dec 2027</span>
+            <span class="edu-loc">Chicago, IL</span>
+          </div>
+          <div class="edu-body">
+            <h3>M.S. in Financial Mathematics</h3>
+            <p class="edu-school">University of Chicago</p>
+            <p class="edu-courses">Options · Mathematical Market Microstructure · Advanced Computing for Finance</p>
+          </div>
+        </div>
+
+        <div class="edu-item">
+          <div class="edu-meta">
+            <span class="edu-period">Jul 2026</span>
+            <span class="edu-loc">Shanghai, China</span>
+          </div>
+          <div class="edu-body">
+            <h3>B.Econ. in Economics</h3>
+            <p class="edu-school">Fudan University, School of Economics</p>
+            <p class="edu-courses">Functional Analysis · Stochastic Processes · Advanced Econometrics · Machine Learning · NLP · RL · Time Series Analysis</p>
+          </div>
+        </div>
+
+        <div class="edu-item">
+          <div class="edu-meta">
+            <span class="edu-period">Dec 2024</span>
+            <span class="edu-loc">Philadelphia, PA</span>
+          </div>
+          <div class="edu-body">
+            <h3>International Guest Student Program</h3>
+            <p class="edu-school">University of Pennsylvania</p>
+            <p class="edu-courses">Mathematics of Finance · Optimization Theory · Complex Analysis · Modern Data Mining</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="container">
+      <h2 class="section-title">Contact</h2>
+      <p class="contact-lead">I'm open to quantitative research roles and research collaborations. Feel free to reach out.</p>
+      <div class="contact-links">
+        <a href="mailto:jerryfeng@uchicago.edu" class="contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+          jerryfeng@uchicago.edu
+        </a>
+        <a href="https://linkedin.com/in/jiarui-feng" target="_blank" rel="noopener" class="contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          linkedin.com/in/jiarui-feng
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Jiarui Feng · Built with HTML / CSS</p>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

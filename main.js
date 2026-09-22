@@ -29,30 +29,43 @@ window.addEventListener('touchmove', e => {
 }, { passive: true });
 window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
 
-// ── AMBIENT blobs: slow-drifting background texture ───────
+// ── AMBIENT blobs: dynamic drifting background ────────────
 class AmbientBlob {
   constructor() {
-    this.baseX = W * (0.08 + Math.random() * 0.84);
-    this.baseY = H * (0.05 + Math.random() * 0.90);
-    this.x     = this.baseX;
-    this.y     = this.baseY;
-    this.r     = 100 + Math.random() * 140;
-    this.alpha = 0.20 + Math.random() * 0.18;
-    this.hue   = 193 + Math.random() * 22;
-    this.phase = Math.random() * Math.PI * 2;
-    this.freq  = 0.00022 + Math.random() * 0.00028;
-    this.drift = 30 + Math.random() * 40;
+    this.baseX    = W * (0.05 + Math.random() * 0.90);
+    this.baseY    = H * (0.05 + Math.random() * 0.90);
+    this.x        = this.baseX;
+    this.y        = this.baseY;
+    this.baseR    = 120 + Math.random() * 160;
+    this.r        = this.baseR;
+    this.baseAlpha = 0.38 + Math.random() * 0.28;
+    this.alpha    = this.baseAlpha;
+    this.hue      = 190 + Math.random() * 30;
+    this.phase    = Math.random() * Math.PI * 2;
+    this.pPhase   = Math.random() * Math.PI * 2; // pulse phase
+    this.freq     = 0.00028 + Math.random() * 0.00035;
+    this.pFreq    = 0.0006  + Math.random() * 0.0008;  // pulse freq (faster)
+    this.drift    = 50 + Math.random() * 70;
+    this.hueShift = (Math.random() - 0.5) * 0.012;     // slow hue drift
   }
   update(t) {
+    // position drift
     this.x = this.baseX + Math.cos(t * this.freq + this.phase) * this.drift;
-    this.y = this.baseY + Math.sin(t * this.freq * 1.3 + this.phase + 1) * this.drift * 0.6;
+    this.y = this.baseY + Math.sin(t * this.freq * 1.4 + this.phase + 1) * this.drift * 0.65;
+    // size pulse
+    const pulse = Math.sin(t * this.pFreq + this.pPhase);
+    this.r      = this.baseR * (1 + pulse * 0.22);
+    // alpha breathe
+    this.alpha  = this.baseAlpha * (0.72 + (pulse + 1) * 0.22);
+    // slow hue drift
+    this.hue   += this.hueShift;
   }
   draw() {
     ctx.save();
-    ctx.filter = 'blur(40px)';
+    ctx.filter = 'blur(38px)';
     const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
-    g.addColorStop(0,    `hsla(${this.hue},90%,72%,${this.alpha})`);
-    g.addColorStop(0.55, `hsla(${this.hue},85%,62%,${this.alpha * 0.3})`);
+    g.addColorStop(0,    `hsla(${this.hue},92%,72%,${this.alpha})`);
+    g.addColorStop(0.45, `hsla(${this.hue},86%,64%,${this.alpha * 0.45})`);
     g.addColorStop(1,    `hsla(${this.hue},80%,58%,0)`);
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -70,25 +83,24 @@ class AmbientBlob {
 //   The trail is always in the direction OPPOSITE to movement,
 //   because slower particles haven't caught up yet.
 
-const PARTICLE_COUNT = 100;
-const RING_R_BASE    = 38; // px, max ring radius when still
+const PARTICLE_COUNT = 180;  // denser
+const RING_R_BASE    = 34;
 
 class RingParticle {
   constructor(i, total) {
     this.angle  = (i / total) * Math.PI * 2;
-    this.ringR  = RING_R_BASE * (0.7 + Math.random() * 0.55); // slight variation
+    this.ringR  = RING_R_BASE * (0.65 + Math.random() * 0.6);
     this.x  = -400;
     this.y  = -400;
     this.vx = 0;
     this.vy = 0;
-    // Varied stiffness → varied chase speed (ergonomic range)
     this.k    = 0.038 + Math.random() * 0.078;
     this.damp = 0.78  + Math.random() * 0.12;
-    this.dotR = 1.4   + Math.random() * 1.7;
-    this.a    = 0.50  + Math.random() * 0.45;
-    // slight cyan hue variation
-    const b   = 200 + Math.floor(Math.random() * 38);
-    this.fill = `rgba(14,${155 + Math.floor(Math.random()*45)},${b},${this.a.toFixed(2)})`;
+    this.dotR = 0.6   + Math.random() * 0.9;   // smaller dots
+    this.a    = 0.55  + Math.random() * 0.42;
+    const g   = 155 + Math.floor(Math.random() * 50);
+    const b   = 200 + Math.floor(Math.random() * 40);
+    this.fill = `rgba(14,${g},${b},${this.a.toFixed(2)})`;
   }
 
   update(mx, my, collapse) {
@@ -116,7 +128,7 @@ let ambientBlobs  = [];
 let ringParticles = [];
 
 function init() {
-  ambientBlobs  = Array.from({ length: 6 }, () => new AmbientBlob());
+  ambientBlobs  = Array.from({ length: 8 }, () => new AmbientBlob());
   ringParticles = Array.from({ length: PARTICLE_COUNT }, (_, i) => new RingParticle(i, PARTICLE_COUNT));
 }
 

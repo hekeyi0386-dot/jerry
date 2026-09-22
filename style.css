@@ -139,17 +139,17 @@ section { padding: 6rem 0; }
 
 /* ── Nav Avatar (replaces JF text) ──────────────────────── */
 .nav-avatar {
-  position: relative;
+  display: grid;          /* stack images in same cell */
   width: 36px;
   height: 36px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .nav-avatar img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  grid-area: 1 / 1;      /* both imgs occupy same cell */
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   transition: opacity 0.12s ease;
 }

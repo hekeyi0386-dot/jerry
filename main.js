@@ -239,6 +239,8 @@ document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click
   document.getElementById('navbar').classList.remove('nav-open');
 }));
 
+document.querySelectorAll('.hero-cta .btn').forEach(b => b.addEventListener('click', triggerSmile));
+
 // ── Hamburger toggle ──────────────────────────────────────
 const hamburger = document.querySelector('.nav-hamburger');
 if (hamburger) {

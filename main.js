@@ -242,7 +242,7 @@ function triggerSmile() {
   smileTimer = setTimeout(() => avatar.classList.remove('smiling'), 1500);
 }
 
-if (navLogo) navLogo.addEventListener('click', triggerSmile);
+document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', triggerSmile));
 
 // ── Navbar active ─────────────────────────────────────────
 const sections = document.querySelectorAll('section[id]');

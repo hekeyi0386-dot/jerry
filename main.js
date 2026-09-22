@@ -234,7 +234,18 @@ function triggerSmile() {
   smileTimer = setTimeout(() => avatar.classList.remove('smiling'), 1500);
 }
 
-document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', triggerSmile));
+document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => {
+  triggerSmile();
+  document.getElementById('navbar').classList.remove('nav-open');
+}));
+
+// ── Hamburger toggle ──────────────────────────────────────
+const hamburger = document.querySelector('.nav-hamburger');
+if (hamburger) {
+  hamburger.addEventListener('click', () => {
+    document.getElementById('navbar').classList.toggle('nav-open');
+  });
+}
 
 // ── Navbar active ─────────────────────────────────────────
 const sections = document.querySelectorAll('section[id]');

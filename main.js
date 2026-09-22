@@ -40,7 +40,7 @@ class GradientBlob {
     this.alpha     = 0.55 + Math.random() * 0.28;
     this.phase     = Math.random() * Math.PI * 2;
     this.phaseY    = Math.random() * Math.PI * 2;
-    this.speed     = 0.00035 + Math.random() * 0.00045;
+    this.speed     = 0.000115 + Math.random() * 0.00015;
     this.hDrift    = (Math.random() - 0.5) * 0.015;
   }
   update(t) {

@@ -582,5 +582,5 @@ footer {
   .skill-group { margin-bottom: 0.75rem; }
 
   /* Contact */
-  .contact-links { flex-direction: column; gap: 1rem; align-items: flex-start; }
+  .contact-links { flex-direction: column; gap: 1rem; align-items: center; }
 }

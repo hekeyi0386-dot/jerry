@@ -239,7 +239,7 @@ function triggerSmile() {
   if (!avatar) return;
   avatar.classList.add('smiling');
   clearTimeout(smileTimer);
-  smileTimer = setTimeout(() => avatar.classList.remove('smiling'), 1000);
+  smileTimer = setTimeout(() => avatar.classList.remove('smiling'), 1500);
 }
 
 if (navLogo) navLogo.addEventListener('click', triggerSmile);

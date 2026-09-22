@@ -1,4 +1,4 @@
-// ── Canvas Setup ─────────────────────────────────────────
+// ── Canvas ───────────────────────────────────────────────
 const canvas = document.getElementById('particle-canvas');
 const ctx    = canvas.getContext('2d');
 let W, H;
@@ -9,56 +9,50 @@ function resize() {
 }
 
 // ── Mouse ────────────────────────────────────────────────
-const mouse = { x: -9999, y: -9999, speed: 0 };
-let lastMX = 0, lastMY = 0;
+const mouse = { x: null, y: null };
 
 window.addEventListener('mousemove', e => {
-  const dx = e.clientX - lastMX;
-  const dy = e.clientY - lastMY;
-  mouse.speed = Math.sqrt(dx * dx + dy * dy);
-  lastMX = mouse.x = e.clientX;
-  lastMY = mouse.y = e.clientY;
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
 });
-window.addEventListener('mouseleave', () => { mouse.x = W / 2; mouse.y = H / 2; mouse.speed = 0; });
+window.addEventListener('mouseleave', () => {
+  mouse.x = null;
+  mouse.y = null;
+});
 window.addEventListener('touchmove', e => {
-  const t = e.touches[0];
-  mouse.speed = Math.hypot(t.clientX - lastMX, t.clientY - lastMY);
-  lastMX = mouse.x = t.clientX;
-  lastMY = mouse.y = t.clientY;
+  mouse.x = e.touches[0].clientX;
+  mouse.y = e.touches[0].clientY;
 }, { passive: true });
+window.addEventListener('touchend', () => {
+  mouse.x = null;
+  mouse.y = null;
+});
 
-// ── AMBIENT blobs: always visible, slowly drift ───────────
-// These form the permanent irregular background pattern
+// ── AMBIENT blobs: always-on drifting background texture ─
 class AmbientBlob {
   constructor() {
-    this.reset();
-    this.x = this.baseX;
-    this.y = this.baseY;
+    this.baseX = W * (0.08 + Math.random() * 0.84);
+    this.baseY = H * (0.05 + Math.random() * 0.90);
+    this.x     = this.baseX;
+    this.y     = this.baseY;
+    this.r     = 100 + Math.random() * 140;
+    this.alpha = 0.22 + Math.random() * 0.18;
+    this.hue   = 193 + Math.random() * 22;
+    this.phase = Math.random() * Math.PI * 2;
+    this.freq  = 0.00022 + Math.random() * 0.00028;
+    this.drift = 30 + Math.random() * 40;
   }
-
-  reset() {
-    this.baseX  = W * (0.08 + Math.random() * 0.84);
-    this.baseY  = H * (0.05 + Math.random() * 0.9);
-    this.r      = 110 + Math.random() * 130;
-    this.alpha  = 0.28 + Math.random() * 0.22;
-    this.hue    = 193 + Math.random() * 22;
-    this.phase  = Math.random() * Math.PI * 2;
-    this.freq   = 0.00025 + Math.random() * 0.0003;
-    this.drift  = 35 + Math.random() * 45;
-  }
-
   update(t) {
     this.x = this.baseX + Math.cos(t * this.freq + this.phase) * this.drift;
-    this.y = this.baseY + Math.sin(t * this.freq * 1.4 + this.phase + 1) * this.drift * 0.65;
+    this.y = this.baseY + Math.sin(t * this.freq * 1.3 + this.phase + 1) * this.drift * 0.6;
   }
-
   draw() {
     ctx.save();
-    ctx.filter = 'blur(36px)';
+    ctx.filter = 'blur(40px)';
     const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
-    g.addColorStop(0,   `hsla(${this.hue}, 92%, 74%, ${this.alpha})`);
-    g.addColorStop(0.55,`hsla(${this.hue}, 86%, 64%, ${this.alpha * 0.38})`);
-    g.addColorStop(1,   `hsla(${this.hue}, 80%, 58%, 0)`);
+    g.addColorStop(0,    `hsla(${this.hue},90%,72%,${this.alpha})`);
+    g.addColorStop(0.55, `hsla(${this.hue},85%,62%,${this.alpha * 0.35})`);
+    g.addColorStop(1,    `hsla(${this.hue},80%,58%,0)`);
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
@@ -67,87 +61,55 @@ class AmbientBlob {
   }
 }
 
-// ── INTERACTIVE blobs: follow mouse, scatter / converge ───
-class InteractiveBlob {
+// ── RING PARTICLES: small dots, spring toward ring around cursor ─
+// Different stiffness → different speeds → natural scatter when moving,
+// tight ring when still. Ergonomic speed: stiffness 0.04–0.11.
+const PARTICLE_COUNT = 100;
+
+class RingParticle {
   constructor(i, total) {
-    const angle = (i / total) * Math.PI * 2 + Math.random() * 0.6;
-    this.scatterAngle  = angle;
-    this.scatterRadius = 130 + Math.random() * 110;
-    this.x  = W / 2 + Math.cos(angle) * this.scatterRadius;
-    this.y  = H / 2 + Math.sin(angle) * this.scatterRadius;
+    this.angle  = (i / total) * Math.PI * 2;
+    this.ringR  = 26 + Math.random() * 22;   // each dot's ring radius
+    // start off-screen
+    this.x  = -300;
+    this.y  = -300;
     this.vx = 0;
     this.vy = 0;
-    this.r  = 80 + Math.random() * 65;
-    this.stiffness = 0.03 + Math.random() * 0.025;
-    this.damping   = 0.85 + Math.random() * 0.07;
-    this.alpha     = 0.55 + Math.random() * 0.3;
-    this.hue       = 197 + Math.random() * 18;
+    // VARIED spring speed — key to the scatter effect
+    this.k    = 0.04 + Math.random() * 0.075;
+    this.damp = 0.78 + Math.random() * 0.12;
+    this.r    = 1.4 + Math.random() * 1.8;
+    this.alpha = 0.5 + Math.random() * 0.45;
+    // slightly varied cyan hue
+    this.color = `rgba(${14 + Math.floor(Math.random()*30)},${155 + Math.floor(Math.random()*40)},${220 + Math.floor(Math.random()*35)},${this.alpha.toFixed(2)})`;
   }
 
-  update(scatter) {
-    const boom = 1 + scatter * 2.5;
-    const sx = mouse.x + Math.cos(this.scatterAngle) * this.scatterRadius * boom;
-    const sy = mouse.y + Math.sin(this.scatterAngle) * this.scatterRadius * boom;
-    const tx = mouse.x + (sx - mouse.x) * scatter;
-    const ty = mouse.y + (sy - mouse.y) * scatter;
-
-    this.vx += (tx - this.x) * this.stiffness;
-    this.vy += (ty - this.y) * this.stiffness;
-    this.vx *= this.damping;
-    this.vy *= this.damping;
-    this.x  += this.vx;
-    this.y  += this.vy;
+  update(mx, my) {
+    // target = ring position around cursor
+    const tx = mx + Math.cos(this.angle) * this.ringR;
+    const ty = my + Math.sin(this.angle) * this.ringR;
+    // spring toward target
+    this.vx = this.vx * this.damp + (tx - this.x) * this.k;
+    this.vy = this.vy * this.damp + (ty - this.y) * this.k;
+    this.x += this.vx;
+    this.y += this.vy;
   }
 
   draw() {
-    ctx.save();
-    ctx.filter = 'blur(26px)';
-    const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
-    g.addColorStop(0,   `hsla(${this.hue}, 90%, 72%, ${this.alpha})`);
-    g.addColorStop(0.5, `hsla(${this.hue}, 85%, 62%, ${this.alpha * 0.45})`);
-    g.addColorStop(1,   `hsla(${this.hue}, 80%, 56%, 0)`);
-    ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
     ctx.fill();
-    ctx.restore();
   }
-}
-
-// ── White center glow (shows when clustered) ──────────────
-function drawCenter(scatter) {
-  const intensity = Math.pow(1 - scatter, 2.5);
-  if (intensity < 0.05 || mouse.x < 0) return;
-
-  // soft halo
-  ctx.save();
-  ctx.filter = 'blur(18px)';
-  const g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 65);
-  g.addColorStop(0,   `rgba(255,255,255,${intensity * 0.92})`);
-  g.addColorStop(0.45,`rgba(200,238,255,${intensity * 0.5})`);
-  g.addColorStop(1,   'rgba(147,221,253,0)');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(mouse.x, mouse.y, 65, 0, Math.PI * 2);
-  ctx.fill();
-
-  // crisp core
-  ctx.filter = 'none';
-  ctx.beginPath();
-  ctx.arc(mouse.x, mouse.y, 9 * intensity, 0, Math.PI * 2);
-  ctx.fillStyle = `rgba(255,255,255,${intensity * 0.98})`;
-  ctx.fill();
-  ctx.restore();
 }
 
 // ── Init ─────────────────────────────────────────────────
-const AMBIENT_COUNT     = 6;
-const INTERACTIVE_COUNT = 7;
-let ambientBlobs = [], interactiveBlobs = [];
+let ambientBlobs   = [];
+let ringParticles  = [];
 
 function init() {
-  ambientBlobs     = Array.from({ length: AMBIENT_COUNT },     () => new AmbientBlob());
-  interactiveBlobs = Array.from({ length: INTERACTIVE_COUNT }, (_, i) => new InteractiveBlob(i, INTERACTIVE_COUNT));
+  ambientBlobs  = Array.from({ length: 6 }, () => new AmbientBlob());
+  ringParticles = Array.from({ length: PARTICLE_COUNT }, (_, i) => new RingParticle(i, PARTICLE_COUNT));
 }
 
 // ── Animate ───────────────────────────────────────────────
@@ -157,18 +119,18 @@ function animate() {
   ctx.clearRect(0, 0, W, H);
   t += 16;
 
-  // decay mouse speed
-  mouse.speed *= 0.88;
-  const scatter = Math.min(mouse.speed / 16, 1);
-
-  // 1. ambient background blobs (always visible)
+  // 1. ambient background blobs (always on)
   ambientBlobs.forEach(b => { b.update(t); b.draw(); });
 
-  // 2. interactive blobs (follow / scatter)
-  interactiveBlobs.forEach(b => { b.update(scatter); b.draw(); });
-
-  // 3. white center when converged
-  drawCenter(scatter);
+  // 2. ring particles — only active when mouse is on screen
+  if (mouse.x !== null) {
+    ctx.save();
+    ringParticles.forEach(p => {
+      p.update(mouse.x, mouse.y);
+      p.draw();
+    });
+    ctx.restore();
+  }
 
   requestAnimationFrame(animate);
 }
@@ -176,32 +138,28 @@ function animate() {
 // ── Boot ──────────────────────────────────────────────────
 window.addEventListener('resize', () => { resize(); init(); });
 resize();
-mouse.x = W / 2;
-mouse.y = H / 2;
 init();
 requestAnimationFrame(animate);
 
 // ── Scroll Reveal ─────────────────────────────────────────
-const revealObserver = new IntersectionObserver(
+const revealObs = new IntersectionObserver(
   entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
   { threshold: 0.08, rootMargin: '0px 0px -30px 0px' }
 );
-
 document.querySelectorAll('.timeline-card, .project-card, .edu-item, .about-text, .skills-box')
   .forEach((el, i) => {
     el.classList.add('reveal');
     el.style.transitionDelay = `${(i % 3) * 80}ms`;
-    revealObserver.observe(el);
+    revealObs.observe(el);
   });
 
 // ── Navbar active ─────────────────────────────────────────
 const sections = document.querySelectorAll('section[id]');
 const navLinks = document.querySelectorAll('.nav-links a');
-
 window.addEventListener('scroll', () => {
-  let current = '';
-  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 140) current = s.id; });
+  let cur = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 140) cur = s.id; });
   navLinks.forEach(a => {
-    a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--accent2)' : '';
+    a.style.color = a.getAttribute('href') === `#${cur}` ? 'var(--accent2)' : '';
   });
 }, { passive: true });

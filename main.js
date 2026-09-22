@@ -73,7 +73,7 @@ window.addEventListener('mousemove', e => {
   mouse.speed = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
   lastMX = mouse.x = e.clientX;
   lastMY = mouse.y = e.clientY;
-  const count = Math.max(5, Math.floor(mouse.speed * 2.0));
+  const count = Math.max(3, Math.floor(mouse.speed * 1.2));
   emitDust(mouse.x, mouse.y, count);
 });
 window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; mouse.speed = 0; });
@@ -82,7 +82,7 @@ window.addEventListener('touchmove', e => {
   mouse.speed = Math.min(Math.hypot(touch.clientX - lastMX, touch.clientY - lastMY), 40);
   lastMX = mouse.x = touch.clientX;
   lastMY = mouse.y = touch.clientY;
-  emitDust(mouse.x, mouse.y, Math.max(5, Math.floor(mouse.speed * 2.0)));
+  emitDust(mouse.x, mouse.y, Math.max(3, Math.floor(mouse.speed * 1.2)));
 }, { passive: true });
 window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
 
@@ -142,7 +142,7 @@ class DustParticle {
     this.y    = y + (Math.random() - 0.5) * 4;
     this.vx   = Math.cos(angle) * spread * (0.1 + Math.random() * 0.4);
     this.vy   = Math.sin(angle) * spread * (0.1 + Math.random() * 0.4) - Math.random() * 0.6;
-    this.r    = 1.5 + Math.random() * 3.5;
+    this.r    = 0.8 + Math.random() * 2.0;
     this.life = 1.0;
     this.decay = 0.005 + Math.random() * 0.008;
     this.hue  = 190 + Math.random() * 30;
